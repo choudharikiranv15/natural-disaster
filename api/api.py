@@ -1,56 +1,23 @@
 import streamlit as st
 import folium
-import requests
 from streamlit_folium import st_folium
+import requests  # Add this import
 
 # Function to fetch events with coordinates
-
-
 def fetch_events_with_coordinates(limit=10):
+    url = f"https://www.gdacs.org/xml/feed.aspx?type=events&country=ALL"  # Update this URL as needed
     try:
-        # URL to fetch disaster events from GDACS (JSON format)
-        url = "https://www.gdacs.org/gdacsdata/Events.json"
         response = requests.get(url)
-
-        # Check for successful response
-        response.raise_for_status()
-
-        # Parse the JSON response
-        events = response.json()
-
-        # Create a list to hold filtered events with coordinates
-        filtered_events = []
-
-        # Iterate through each event in the JSON response
-        for event in events:
-            if 'geometry' in event:
-                latitude = event['geometry']['coordinates'][1]
-                longitude = event['geometry']['coordinates'][0]
-                event_type = event.get('eventtype', 'Unknown')
-                event_name = event.get('eventname', 'Unknown Event')
-                severity = event.get('severity', 'N/A')
-                fromdate = event.get('fromdate', 'Unknown Date')
-
-                filtered_events.append({
-                    'latitude': latitude,
-                    'longitude': longitude,
-                    'eventtype': event_type,
-                    'eventname': event_name,
-                    'severity': severity,
-                    'fromdate': fromdate
-                })
-
-        # Limit the number of events returned
-        return filtered_events[:limit]
-
-    except requests.RequestException as error:
-        st.error(f"Error fetching events: {error}")
+        response.raise_for_status()  # Raise an error for bad responses
+        events = response.json()  # Update based on actual API response format
+        # Filter out events that don't have geographical information (geometry)
+        return [event for event in events if 'geometry' in event]
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error fetching events: {e}")
         return []
 
-
 # Sidebar to select the number of events to display
-num_events = st.sidebar.slider(
-    "Number of Events", min_value=1, max_value=20, value=10)
+num_events = st.sidebar.slider("Number of Events", min_value=1, max_value=20, value=10)
 
 # Fetch recent events
 events = fetch_events_with_coordinates(limit=num_events)
@@ -63,18 +30,17 @@ event_type_colors = {
     'TC': 'blue',   # Tropical Cyclone
     'FL': 'green',  # Flood
     'DR': 'orange',  # Drought
-    'EQ': 'red',     # Earthquake
-    'Unknown': 'gray'  # Default color for unknown types
+    'EQ': 'red'     # Earthquake
 }
 
 # Add events to the map
 for event in events:
-    latitude = event['latitude']
-    longitude = event['longitude']
-    event_type = event['eventtype']
-    event_name = event['eventname']
-    severity = event['severity']
-    event_date = event['fromdate']
+    latitude = event['geometry']['coordinates'][1]
+    longitude = event['geometry']['coordinates'][0]
+    event_type = event.get('eventtype', 'Unknown')
+    event_name = event.get('eventname', 'Unknown Event')
+    severity = event.get('severity', 'N/A')
+    event_date = event.get('fromdate', 'Unknown Date')
 
     # Create a popup message
     popup_text = (f"Event: {event_name}<br>"
