@@ -2,7 +2,7 @@ import React from 'react';
 
 const HurricanePage = () => {
   // URL of your hosted Streamlit app
-  const streamlitUrl = 'https://natural-disaster-codefury-b2wswuvw8vvvpoki5oenso.streamlit.app/'; // Replace with your actual URL
+  const streamlitUrl = 'https://natural-disaster-gplvrtnr7x9mega5ibvtvq.streamlit.app/'; // Replace with your actual URL
   
   return (
     <div className="p-4 max-w-3xl mx-auto">
